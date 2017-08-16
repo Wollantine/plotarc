@@ -1,0 +1,282 @@
+var _user$project$Main$isA = function (dimension) {
+	return function (_p0) {
+		return A2(
+			F2(
+				function (x, y) {
+					return _elm_lang$core$Native_Utils.eq(x, y);
+				}),
+			dimension,
+			function (_) {
+				return _.category;
+			}(_p0));
+	};
+};
+var _user$project$Main$findDimensions = F2(
+	function (category, _p1) {
+		var _p2 = _p1;
+		return _elm_lang$core$Set$toList(
+			_elm_lang$core$Set$fromList(
+				A2(
+					_elm_lang$core$List$map,
+					function (_) {
+						return _.name;
+					},
+					A2(
+						_elm_lang$core$List$filter,
+						_user$project$Main$isA(category),
+						_p2._0))));
+	});
+var _user$project$Main$noteDimensions = function (_p3) {
+	var _p4 = _p3;
+	return _p4._0;
+};
+var _user$project$Main$has = F2(
+	function (dimensions, note) {
+		var dims = _elm_lang$core$Set$fromList(
+			A2(
+				_elm_lang$core$List$map,
+				function (_) {
+					return _.name;
+				},
+				dimensions));
+		var noteDims = _elm_lang$core$Set$fromList(
+			A2(
+				_elm_lang$core$List$map,
+				function (_) {
+					return _.name;
+				},
+				_user$project$Main$noteDimensions(note)));
+		var intersection = A2(_elm_lang$core$Set$intersect, noteDims, dims);
+		return _elm_lang$core$Native_Utils.eq(
+			_elm_lang$core$Set$size(dims),
+			_elm_lang$core$Set$size(intersection));
+	});
+var _user$project$Main$Dimension = F2(
+	function (a, b) {
+		return {category: a, name: b};
+	});
+var _user$project$Main$chapter = A2(_user$project$Main$Dimension, 'root', 'chapter');
+var _user$project$Main$scene = A2(_user$project$Main$Dimension, 'root', 'scene');
+var _user$project$Main$storyArc = A2(_user$project$Main$Dimension, 'root', 'storyArc');
+var _user$project$Main$side = A2(_user$project$Main$Dimension, 'root', 'side');
+var _user$project$Main$character = A2(_user$project$Main$Dimension, 'root', 'character');
+var _user$project$Main$object = A2(_user$project$Main$Dimension, 'root', 'object');
+var _user$project$Main$place = A2(_user$project$Main$Dimension, 'root', 'place');
+var _user$project$Main$event = A2(_user$project$Main$Dimension, 'root', 'event');
+var _user$project$Main$time = A2(_user$project$Main$Dimension, 'root', 'time');
+var _user$project$Main$goodBad = A2(_user$project$Main$Dimension, 'character', 'GoodBad');
+var _user$project$Main$badBad = A2(_user$project$Main$Dimension, 'character', 'BadBad');
+var _user$project$Main$good = A2(_user$project$Main$Dimension, 'side', 'Good');
+var _user$project$Main$bad = A2(_user$project$Main$Dimension, 'side', 'Bad');
+var _user$project$Main$one = A2(_user$project$Main$Dimension, 'chapter', '1');
+var _user$project$Main$two = A2(_user$project$Main$Dimension, 'chapter', '2');
+var _user$project$Main$three = A2(_user$project$Main$Dimension, 'chapter', '3');
+var _user$project$Main$four = A2(_user$project$Main$Dimension, 'chapter', '4');
+var _user$project$Main$dimensions = {
+	ctor: '::',
+	_0: _user$project$Main$chapter,
+	_1: {
+		ctor: '::',
+		_0: _user$project$Main$scene,
+		_1: {
+			ctor: '::',
+			_0: _user$project$Main$storyArc,
+			_1: {
+				ctor: '::',
+				_0: _user$project$Main$side,
+				_1: {
+					ctor: '::',
+					_0: _user$project$Main$character,
+					_1: {
+						ctor: '::',
+						_0: _user$project$Main$object,
+						_1: {
+							ctor: '::',
+							_0: _user$project$Main$place,
+							_1: {
+								ctor: '::',
+								_0: _user$project$Main$event,
+								_1: {
+									ctor: '::',
+									_0: _user$project$Main$time,
+									_1: {
+										ctor: '::',
+										_0: _user$project$Main$goodBad,
+										_1: {
+											ctor: '::',
+											_0: _user$project$Main$badBad,
+											_1: {
+												ctor: '::',
+												_0: _user$project$Main$good,
+												_1: {
+													ctor: '::',
+													_0: _user$project$Main$bad,
+													_1: {
+														ctor: '::',
+														_0: _user$project$Main$one,
+														_1: {
+															ctor: '::',
+															_0: _user$project$Main$two,
+															_1: {
+																ctor: '::',
+																_0: _user$project$Main$three,
+																_1: {
+																	ctor: '::',
+																	_0: _user$project$Main$four,
+																	_1: {ctor: '[]'}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+};
+var _user$project$Main$chapters = A2(
+	_elm_lang$core$List$filter,
+	_user$project$Main$isA('chapter'),
+	_user$project$Main$dimensions);
+var _user$project$Main$sides = A2(
+	_elm_lang$core$List$filter,
+	_user$project$Main$isA('side'),
+	_user$project$Main$dimensions);
+var _user$project$Main$Note = F2(
+	function (a, b) {
+		return {ctor: 'Note', _0: a, _1: b};
+	});
+var _user$project$Main$notes = {
+	ctor: '::',
+	_0: A2(
+		_user$project$Main$Note,
+		{
+			ctor: '::',
+			_0: _user$project$Main$goodBad,
+			_1: {
+				ctor: '::',
+				_0: _user$project$Main$good,
+				_1: {
+					ctor: '::',
+					_0: _user$project$Main$one,
+					_1: {ctor: '[]'}
+				}
+			}
+		},
+		''),
+	_1: {
+		ctor: '::',
+		_0: A2(
+			_user$project$Main$Note,
+			{
+				ctor: '::',
+				_0: _user$project$Main$goodBad,
+				_1: {
+					ctor: '::',
+					_0: _user$project$Main$good,
+					_1: {
+						ctor: '::',
+						_0: _user$project$Main$two,
+						_1: {ctor: '[]'}
+					}
+				}
+			},
+			''),
+		_1: {
+			ctor: '::',
+			_0: A2(
+				_user$project$Main$Note,
+				{
+					ctor: '::',
+					_0: _user$project$Main$goodBad,
+					_1: {
+						ctor: '::',
+						_0: _user$project$Main$bad,
+						_1: {
+							ctor: '::',
+							_0: _user$project$Main$three,
+							_1: {ctor: '[]'}
+						}
+					}
+				},
+				''),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_user$project$Main$Note,
+					{
+						ctor: '::',
+						_0: _user$project$Main$goodBad,
+						_1: {
+							ctor: '::',
+							_0: _user$project$Main$bad,
+							_1: {
+								ctor: '::',
+								_0: _user$project$Main$four,
+								_1: {ctor: '[]'}
+							}
+						}
+					},
+					''),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_user$project$Main$Note,
+						{
+							ctor: '::',
+							_0: _user$project$Main$scene,
+							_1: {
+								ctor: '::',
+								_0: _user$project$Main$one,
+								_1: {ctor: '[]'}
+							}
+						},
+						'GoodBad turns bad'),
+					_1: {ctor: '[]'}
+				}
+			}
+		}
+	}
+};
+var _user$project$Main$chaptersWithGoodBad = function () {
+	var rels = A2(
+		_elm_lang$core$List$filter,
+		_user$project$Main$has(
+			{
+				ctor: '::',
+				_0: _user$project$Main$goodBad,
+				_1: {ctor: '[]'}
+			}),
+		_user$project$Main$notes);
+	return _elm_lang$core$List$concat(
+		A2(
+			_elm_lang$core$List$map,
+			_user$project$Main$findDimensions('chapter'),
+			rels));
+}();
+var _user$project$Main$sidesOfGoodBad = function () {
+	var rels = A2(
+		_elm_lang$core$List$filter,
+		_user$project$Main$has(
+			{
+				ctor: '::',
+				_0: _user$project$Main$goodBad,
+				_1: {ctor: '[]'}
+			}),
+		_user$project$Main$notes);
+	return _elm_lang$core$List$concat(
+		A2(
+			_elm_lang$core$List$map,
+			_user$project$Main$findDimensions('side'),
+			rels));
+}();
+var _user$project$Main$main = _elm_lang$virtual_dom$Native_VirtualDom.staticProgram(
+	_elm_lang$html$Html$text(
+		_elm_lang$core$Basics$toString(_user$project$Main$sidesOfGoodBad)));
