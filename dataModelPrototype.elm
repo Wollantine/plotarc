@@ -2,32 +2,32 @@ import Html exposing (text)
 import List exposing (..)
 import Set exposing (Set)
 
-type alias Dimension =
+type alias Tag =
   { category: String
   , name: String
   }
 
-chapter = Dimension "root" "chapter"
-scene = Dimension "root" "scene"
-storyArc = Dimension "root" "storyArc"
-side = Dimension "root" "side"
-character = Dimension "root" "character"
-object = Dimension "root" "object"
-place = Dimension "root" "place"
-event = Dimension "root" "event"
-time = Dimension "root" "time"
+chapter = Tag "root" "chapter"
+scene = Tag "root" "scene"
+storyArc = Tag "root" "storyArc"
+side = Tag "root" "side"
+character = Tag "root" "character"
+object = Tag "root" "object"
+place = Tag "root" "place"
+event = Tag "root" "event"
+time = Tag "root" "time"
 
-goodBad = Dimension "character" "GoodBad"
-badBad = Dimension "character" "BadBad"
-good = Dimension "side" "Good"
-bad = Dimension "side" "Bad"
-one = Dimension "chapter" "1"
-two = Dimension "chapter" "2"
-three = Dimension "chapter" "3"
-four = Dimension "chapter" "4"
+goodBad = Tag "character" "GoodBad"
+badBad = Tag "character" "BadBad"
+good = Tag "side" "Good"
+bad = Tag "side" "Bad"
+one = Tag "chapter" "1"
+two = Tag "chapter" "2"
+three = Tag "chapter" "3"
+four = Tag "chapter" "4"
 
-dimensions: List Dimension
-dimensions =
+tags: List Tag
+tags =
   [ chapter
   , scene
   , storyArc
@@ -47,13 +47,13 @@ dimensions =
   , four
   ]
 
-type Note = Note (List Dimension) String
-noteDimensions: Note -> List Dimension
-noteDimensions (Note dims _) = dims
+type Note = Note (List Tag) String
+tagsInNote: Note -> List Tag
+tagsInNote (Note tags _) = tags
 
-findDimensions: String -> Note -> List String
-findDimensions category (Note dims _) =
-  map .name (filter (isA category) dims)
+tagsOfCategory: String -> Note -> List String
+tagsOfCategory category (Note tags _) =
+  map .name (filter (isA category) tags)
   |> Set.fromList
   |> Set.toList
 
@@ -66,34 +66,34 @@ notes =
   , Note [scene, one] "GoodBad turns bad"
   ]
 
-isA: String -> Dimension -> Bool
-isA dimension = .category >> (==) dimension
+isA: String -> Tag -> Bool
+isA tag = .category >> (==) tag
 
-has: List Dimension -> Note -> Bool
-has dimensions note =
+has: List Tag -> Note -> Bool
+has targetTags note =
   let
-    noteDims = Set.fromList (map .name (noteDimensions note))
-    dims = Set.fromList (map .name dimensions)
-    intersection = Set.intersect noteDims dims
+    noteTags = Set.fromList (map .name (tagsInNote note))
+    tags = Set.fromList (map .name targetTags)
+    intersection = Set.intersect noteTags tags
   in
-    Set.size dims == Set.size intersection
+    Set.size tags == Set.size intersection
 
 
 
 
-chapters = filter (isA "chapter") dimensions
-sides = filter (isA "side") dimensions
+chapters = filter (isA "chapter") tags
+sides = filter (isA "side") tags
 
 chaptersWithGoodBad =
   let
     rels =  (filter (has [goodBad]) notes)
   in
-    concat (map (findDimensions "chapter") rels)
+    concat (map (tagsOfCategory "chapter") rels)
 
 sidesOfGoodBad =
   let
     rels =  (filter (has [goodBad]) notes)
   in
-    concat (map (findDimensions "side") rels)
+    concat (map (tagsOfCategory "side") rels)
 
 main = text (toString sidesOfGoodBad)
