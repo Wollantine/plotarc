@@ -57,6 +57,10 @@ tagsOfCategory category (Note tags _) =
   |> Set.fromList
   |> Set.toList
 
+tagsInNotesOfCategory: String -> List Note -> List String
+tagsInNotesOfCategory cat notes =
+  concat (map (tagsOfCategory cat) notes)
+
 notes: List Note
 notes =
   [ Note [goodBad, good, one] ""
@@ -80,7 +84,6 @@ has targetTags note =
 
 
 
-
 chapters = filter (isA "chapter") tags
 sides = filter (isA "side") tags
 
@@ -88,12 +91,16 @@ chaptersWithGoodBad =
   let
     rels =  (filter (has [goodBad]) notes)
   in
-    concat (map (tagsOfCategory "chapter") rels)
+    tagsInNotesOfCategory "chapter" rels
 
 sidesOfGoodBad =
   let
     rels =  (filter (has [goodBad]) notes)
   in
-    concat (map (tagsOfCategory "side") rels)
+    tagsInNotesOfCategory "side" rels
+
+goodBadChaptersBySide: List List String
+goodBadChaptersBySide =
+  
 
 main = text (toString sidesOfGoodBad)
