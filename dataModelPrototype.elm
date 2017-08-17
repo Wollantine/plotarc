@@ -99,16 +99,16 @@ sidesOfGoodBad =
   in
     tagsInNotesOfCategory "side" rels
 
-goodBadChaptersBySide: List (List String)
+goodBadChaptersBySide: List (String, List String)
 goodBadChaptersBySide =
   let
-    goodBadChaptersWithSide: Tag -> List Note
-    goodBadChaptersWithSide = \side -> filter (has [side, goodBad]) notes
-    goodBadNotesBySide: List (List Note)
+    goodBadChaptersWithSide: Tag -> (Tag, List Note)
+    goodBadChaptersWithSide = \side -> (side, filter (has [side, goodBad]) notes)
+    goodBadNotesBySide: List (Tag, List Note)
     goodBadNotesBySide = map goodBadChaptersWithSide sides
-    noteToChapter = tagsOfCategory "chapter"
+    notesChapters = \notes -> concat (map (tagsOfCategory "chapter") notes)
   in
-    (map (\notes -> concat (map noteToChapter notes)) goodBadNotesBySide)
-  
+    map (\(tag, notes) -> (.name tag, notesChapters notes)) goodBadNotesBySide
+
 
 main = text (toString goodBadChaptersBySide)
