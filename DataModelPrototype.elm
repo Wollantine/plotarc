@@ -1,3 +1,5 @@
+module DataModelPrototype exposing (..)
+
 import Html exposing (text)
 import List exposing (..)
 import Set exposing (Set)
@@ -47,12 +49,16 @@ tags =
   , four
   ]
 
-type Note = Note (List Tag) String
+type alias Note =
+  { tags: List Tag
+  , title: String
+  }
+
 tagsInNote: Note -> List Tag
-tagsInNote (Note tags _) = tags
+tagsInNote {tags} = tags
 
 tagsOfCategory: String -> Note -> List String
-tagsOfCategory category (Note tags _) =
+tagsOfCategory category {tags} =
   map .name (filter (isA category) tags)
 
 tagsInNotesOfCategory: String -> List Note -> List String
@@ -63,24 +69,31 @@ tagsInNotesOfCategory cat notes =
 
 notes: List Note
 notes =
-  [ Note [goodBad, good, one] ""
-  , Note [goodBad, good, two] ""
-  , Note [goodBad, bad, three] ""
-  , Note [goodBad, bad, four] ""
-  , Note [scene, one] "GoodBad turns bad"
+  [ Note [goodBad, good, one] "GoodBad has doubts"
+  , Note [goodBad, good, two] "GoodBad discovers he has been betrayed"
+  , Note [goodBad, bad, three] "GoodBad turns mad and kills everyone"
+  , Note [goodBad, bad, four] "GoodBad calms down and rethinks his purpose"
+  , Note [scene, two] "GoodBad turns bad"
   ]
+
+main = text (toString (filter (hasTags [goodBad]) notes))
+
+and: (a -> Bool) -> (a -> Bool) -> a -> Bool
+and funcA funcB a = (&&) (funcA a) (funcB a)
 
 isA: String -> Tag -> Bool
 isA tag = .category >> (==) tag
 
-has: List Tag -> Note -> Bool
-has targetTags note =
+hasTags: List Tag -> Note -> Bool
+hasTags targetTags note =
   let
-    noteTags = Set.fromList (map .name (tagsInNote note))
+    noteTags = Set.fromList (map .name (.tags note))
     tags = Set.fromList (map .name targetTags)
     intersection = Set.intersect noteTags tags
   in
     Set.size tags == Set.size intersection
+
+{-hasTagsOfCategory: String -}
 
 
 
@@ -89,26 +102,24 @@ sides = filter (isA "side") tags
 
 chaptersWithGoodBad =
   let
-    rels =  (filter (has [goodBad]) notes)
+    rels =  (filter (hasTags [goodBad]) notes)
   in
     tagsInNotesOfCategory "chapter" rels
 
 sidesOfGoodBad =
   let
-    rels =  (filter (has [goodBad]) notes)
+    rels =  (filter (hasTags [goodBad]) notes)
   in
     tagsInNotesOfCategory "side" rels
 
-goodBadChaptersBySide: List (String, List String)
+{-goodBadChaptersBySide: List (String, List (String, String))-}
 goodBadChaptersBySide =
   let
     goodBadChaptersWithSide: Tag -> (Tag, List Note)
-    goodBadChaptersWithSide = \side -> (side, filter (has [side, goodBad]) notes)
+    goodBadChaptersWithSide = \side -> (side, filter (hasTags [side, goodBad]) notes)
     goodBadNotesBySide: List (Tag, List Note)
     goodBadNotesBySide = map goodBadChaptersWithSide sides
-    notesChapters = \notes -> concat (map (tagsOfCategory "chapter") notes)
+    noteWithChapter = \note -> (tagsOfCategory "chapter" note, .title note)
+    notesChapters = \notesOfOneSide -> map noteWithChapter notes
   in
     map (\(tag, notes) -> (.name tag, notesChapters notes)) goodBadNotesBySide
-
-
-main = text (toString goodBadChaptersBySide)
