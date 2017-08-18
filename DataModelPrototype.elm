@@ -73,6 +73,7 @@ notes =
   , Note leafTag [goodBad, good, two] "GoodBad discovers he has been betrayed"
   , Note leafTag [goodBad, bad, three] "GoodBad turns mad and kills everyone"
   , Note leafTag [goodBad, bad, four] "GoodBad calms down and rethinks his purpose"
+  , Note leafTag [goodBad, object] "GoodBad's wristwatch"
   , Note leafTag [scene, two] "GoodBad turns bad"
   ]
 
@@ -87,42 +88,56 @@ noteView note =
   ]
 
 
-main = view (chaptersWithGoodBad)
+main = view chaptersWithGoodBad
 
 (&>): (a -> Bool) -> (a -> Bool) -> a -> Bool
 (&>) funcA funcB a = (&&) (funcA a) (funcB a)
 
 
+{- Deprecated: isA implies hierarchy, but that is what hasSomeTags is for.
+
 isA: Tag -> Note -> Bool
-isA tag note = tag.name == note.tag.name
+isA tag note = tag.name == note.tag.name-}
 
-hasTags: List Tag -> Note -> Bool
-hasTags targetTags note =
+tagsIntersection: List Tag -> List Tag -> List Tag
+tagsIntersection listA listB =
   let
-    noteTags = Set.fromList (map .name (.tags note))
-    tags = Set.fromList (map .name targetTags)
-    intersection = Set.intersect noteTags tags
+    listToSet = \l -> Set.fromList (map .name l)
   in
-    Set.size tags == Set.size intersection
+    Set.intersect (listToSet listA) (listToSet listB)
+      |> Set.toList
+      |> map Tag
 
-{-hasTagsOfCategory: String -}
+hasAllTags: List Tag -> Note -> Bool
+hasAllTags targetTags note =
+  let
+    intersection = tagsIntersection targetTags note.tags
+  in
+    List.length targetTags == List.length intersection
+
+hasSomeTags: List Tag -> Note -> Bool
+hasSomeTags targetTags note =
+  let
+    intersection = tagsIntersection targetTags note.tags
+  in
+    not (List.isEmpty intersection)
 
 
 
-chapters = filter (isA chapter) notes
-sides = filter (isA side) notes
 
 chaptersWithGoodBad: List Note
 chaptersWithGoodBad =
   let
-    isAChapterWithGoodBad = (hasTags [goodBad])
+    chapterTags = map .tag (filter (hasSomeTags [chapter]) notes)
+    isAChapterWithGoodBad = (hasAllTags [goodBad]) &> (hasSomeTags chapterTags)
   in
     filter isAChapterWithGoodBad notes
 
 sidesOfGoodBad: List Note
 sidesOfGoodBad =
   let
-    isASideOfGoodBad = (hasTags [goodBad]) &> (isA side)
+    sideTags = map .tag (filter (hasSomeTags [side]) notes)
+    isASideOfGoodBad = (hasAllTags [goodBad]) &> (hasSomeTags sideTags)
   in
     filter isASideOfGoodBad notes
 
