@@ -2,104 +2,12 @@ module DataModelPrototype exposing (..)
 
 import List exposing (..)
 import Set exposing (Set)
-import Html exposing (Html, div, text)
-import Html.Attributes exposing (style)
+import ViewHelpers exposing (..)
+import Notes exposing (..)
 
-type alias Tag = {name: String}
-
-chapter = Tag "chapter"
-scene = Tag "scene"
-storyArc = Tag "storyArc"
-side = Tag "side"
-character = Tag "character"
-object = Tag "object"
-place = Tag "place"
-event = Tag "event"
-time = Tag "time"
-
-goodBad = Tag "GoodBad"
-badBad = Tag "BadBad"
-good = Tag "Good"
-bad = Tag "Bad"
-one = Tag "1"
-two = Tag "2"
-three = Tag "3"
-four = Tag "4"
-
-{- Provisional -}
-leafTag = Tag "leaf"
-
-tags: List Tag
-tags =
-  [ chapter
-  , scene
-  , storyArc
-  , side
-  , character
-  , object
-  , place
-  , event
-  , time
-  , goodBad
-  , badBad
-  , good
-  , bad
-  , one
-  , two
-  , three
-  , four
-  ]
-
-type alias Note =
-  { tag: Tag
-  , tags: List Tag
-  , title: String
-  }
 
 tagsInNote: Note -> List Tag
 tagsInNote {tags} = tags
-
-
-notes: List Note
-notes =
-  [ Note one [chapter] "1"
-  , Note two [chapter] "2"
-  , Note three [chapter] "3"
-  , Note four [chapter] "4"
-  , Note good [side] "Good"
-  , Note bad [side] "Bad"
-  , Note goodBad [character] "GoodBad"
-  , Note badBad [character] "BadBad"
-  , Note leafTag [goodBad, good, one] "GoodBad has doubts"
-  , Note leafTag [goodBad, good, two] "GoodBad discovers he has been betrayed"
-  , Note leafTag [goodBad, bad, three] "GoodBad turns mad and kills everyone"
-  , Note leafTag [goodBad, bad, four] "GoodBad calms down and rethinks his purpose"
-  , Note leafTag [goodBad, object] "GoodBad's wristwatch"
-  , Note leafTag [scene, two] "GoodBad turns bad"
-  ]
-
-view: List Note -> Html Never
-view notes =
-  div [] (List.map noteView notes)
-
-noteView: Note -> Html Never
-noteView note =
-  div [] [
-    text note.title
-  ]
-
-groupsView: List (String, List (String, String)) -> Html Never
-groupsView groups =
-  let
-    line = \(title, description) -> div []
-      [text (title ++ "   " ++ description)]
-    group = \(title, g) -> div []
-      [ text title
-      , div [style [("margin-left", "20px")]] (map line g)
-      ]
-  in
-    div [] (map group groups)
-
 
 main = groupsView goodBadChaptersBySide
 
