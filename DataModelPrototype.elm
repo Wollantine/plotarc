@@ -4,21 +4,17 @@ import List exposing (..)
 import Set exposing (Set)
 import ViewHelpers exposing (..)
 import Notes exposing (..)
+import Html exposing (text)
 
 
-tagsInNote: Note -> List Tag
-tagsInNote {tags} = tags
-
-main = groupsView goodBadChaptersBySide
+main = text (toString (relatedNoteOfTag chapter
+  (Note leafTag [goodBad, good, one] "GoodBad has doubts")))
 
 (&>): (a -> Bool) -> (a -> Bool) -> a -> Bool
 (&>) funcA funcB a = (&&) (funcA a) (funcB a)
 
-
-{- Deprecated: isA implies hierarchy, but that is what hasSomeTags is for.
-
-isA: Tag -> Note -> Bool
-isA tag note = tag.name == note.tag.name-}
+tagsInNote: Note -> List Tag
+tagsInNote {tags} = tags
 
 tagsIntersection: List Tag -> List Tag -> List Tag
 tagsIntersection listA listB =
@@ -43,6 +39,26 @@ hasSomeTags targetTags note =
   in
     not (List.isEmpty intersection)
 
+firstTagOf: List Tag -> Note -> Maybe Tag
+firstTagOf tags note =
+    tagsIntersection tags note.tags |> List.head
+
+noteOfTag: Maybe Tag -> List Note -> Maybe Note
+noteOfTag tag notes =
+  case tag of
+    Just t -> notes
+      |> filter (\n -> n.tag.name == t.name)
+      |> List.head
+    Nothing -> Nothing
+
+relatedNoteOfTag: Tag -> Note -> Maybe Note
+relatedNoteOfTag tag note =
+  let
+    notesOfTagType = notes |> filter (hasSomeTags [tag])
+    tagsOfTagType = map .tag notesOfTagType
+    firstTagOfTagTypeInNote = firstTagOf tagsOfTagType note
+  in
+    notesOfTagType |> noteOfTag firstTagOfTagTypeInNote
 
 
 
@@ -62,9 +78,22 @@ sidesOfGoodBad =
   in
     filter isASideOfGoodBad notes
 
+-- goodBadChaptersOfSide: Tag -> List (String, String)
+-- goodBadChaptersOfSide side =
+--   notes
+--     |> filter (hasAllTags [goodBad, side] &> hasSomeTags chapterTags)
+--     |> map (\note -> case (firstTagOf chapterTags note) of
+--       Just chapter -> chapter.name
+--       Nothing ->
+--       )
+
+
+
 goodBadChaptersBySide: List (String, List (String, String))
 goodBadChaptersBySide =
-  [("good", [("1", "blabla1"), ("2", "blabla2")]), ("bad", [("3", "blabla3"), ("4", "blabla4")])]
+  [("good", [("1", "blabla1"), ("2", "blabla2")])
+  , ("bad", [("3", "blabla3"), ("4", "blabla4")])
+  ]
 {-goodBadChaptersBySide =
   let
     goodBadChaptersWithSide: Tag -> (Tag, List Note)
