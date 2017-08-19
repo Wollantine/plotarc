@@ -3,6 +3,7 @@ module DataModelPrototype exposing (..)
 import List exposing (..)
 import Set exposing (Set)
 import Html exposing (Html, div, text)
+import Html.Attributes exposing (style)
 
 type alias Tag = {name: String}
 
@@ -87,8 +88,20 @@ noteView note =
     text note.title
   ]
 
+groupsView: List (String, List (String, String)) -> Html Never
+groupsView groups =
+  let
+    line = \(title, description) -> div []
+      [text (title ++ "   " ++ description)]
+    group = \(title, g) -> div []
+      [ text title
+      , div [style [("margin-left", "20px")]] (map line g)
+      ]
+  in
+    div [] (map group groups)
 
-main = view chaptersWithGoodBad
+
+main = groupsView goodBadChaptersBySide
 
 (&>): (a -> Bool) -> (a -> Bool) -> a -> Bool
 (&>) funcA funcB a = (&&) (funcA a) (funcB a)
@@ -141,7 +154,9 @@ sidesOfGoodBad =
   in
     filter isASideOfGoodBad notes
 
-{-goodBadChaptersBySide: List (String, List (String, String))-}
+goodBadChaptersBySide: List (String, List (String, String))
+goodBadChaptersBySide =
+  [("good", [("1", "blabla1"), ("2", "blabla2")]), ("bad", [("3", "blabla3"), ("4", "blabla4")])]
 {-goodBadChaptersBySide =
   let
     goodBadChaptersWithSide: Tag -> (Tag, List Note)
