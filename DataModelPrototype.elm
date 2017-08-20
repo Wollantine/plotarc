@@ -7,7 +7,7 @@ import Notes exposing (..)
 import Html exposing (text)
 
 
-main = groupsView goodBadSidesByChapter
+main = view sidesOfGoodBad
 
 -- AND of functions
 (&>): (a -> Bool) -> (a -> Bool) -> a -> Bool
@@ -57,7 +57,7 @@ noteOfTag tag =
       |> List.head
     Nothing -> Nothing
 
-{-| Returns, from a note, its first tag of a given category
+{-| Returns, from a note, its first tag of a given category.
 E.g. In a note related to chapter two, `relatedNoteOfTag chapter` returns the
 note of chapter two.
 
@@ -85,24 +85,31 @@ tagsTaggedAs: Tag -> List Tag
 tagsTaggedAs targetTag =
   notesTaggedAs targetTag |> map .tag
 
+type Relationship = Tagged Tag | WithTagOfCategory Tag
+
+relatedNotes: List Relationship -> List Note
+relatedNotes relationships =
+  let
+    filterNotes relationship notes =
+      case relationship of
+        Tagged tag -> notes |> filter (hasTag tag)
+        WithTagOfCategory tag -> notes |> filter (hasSomeTags (tagsTaggedAs tag))
+  in
+    relationships
+      |> List.foldl filterNotes notes
 
 
-chapterTags = map .tag (filter (hasTag chapter) notes)
-sideTags = map .tag (filter (hasTag side) notes)
+
+
+
+chapterTags = tagsTaggedAs chapter
+sideTags = tagsTaggedAs side
 
 chaptersWithGoodBad: List Note
-chaptersWithGoodBad =
-  let
-    isAChapterWithGoodBad = (hasAllTags [goodBad]) &> (hasSomeTags chapterTags)
-  in
-    filter isAChapterWithGoodBad notes
+chaptersWithGoodBad = relatedNotes [Tagged goodBad, WithTagOfCategory chapter]
 
 sidesOfGoodBad: List Note
-sidesOfGoodBad =
-  let
-    isASideOfGoodBad = (hasAllTags [goodBad]) &> (hasSomeTags sideTags)
-  in
-    filter isASideOfGoodBad notes
+sidesOfGoodBad = relatedNotes [Tagged goodBad, WithTagOfCategory side]
 
 
 goodBadChaptersOfSide: Tag -> List (String, String)
