@@ -7,8 +7,7 @@ import Notes exposing (..)
 import Html exposing (text)
 
 
-main = text (toString (relatedNoteOfTag chapter
-  (Note leafTag [goodBad, good, one] "GoodBad has doubts")))
+main = groupsView goodBadChaptersBySide
 
 (&>): (a -> Bool) -> (a -> Bool) -> a -> Bool
 (&>) funcA funcB a = (&&) (funcA a) (funcB a)
@@ -61,11 +60,12 @@ relatedNoteOfTag tag note =
     notesOfTagType |> noteOfTag firstTagOfTagTypeInNote
 
 
+chapterTags = map .tag (filter (hasSomeTags [chapter]) notes)
+sideTags = map .tag (filter (hasSomeTags [side]) notes)
 
 chaptersWithGoodBad: List Note
 chaptersWithGoodBad =
   let
-    chapterTags = map .tag (filter (hasSomeTags [chapter]) notes)
     isAChapterWithGoodBad = (hasAllTags [goodBad]) &> (hasSomeTags chapterTags)
   in
     filter isAChapterWithGoodBad notes
@@ -73,27 +73,31 @@ chaptersWithGoodBad =
 sidesOfGoodBad: List Note
 sidesOfGoodBad =
   let
-    sideTags = map .tag (filter (hasSomeTags [side]) notes)
     isASideOfGoodBad = (hasAllTags [goodBad]) &> (hasSomeTags sideTags)
   in
     filter isASideOfGoodBad notes
 
--- goodBadChaptersOfSide: Tag -> List (String, String)
--- goodBadChaptersOfSide side =
---   notes
---     |> filter (hasAllTags [goodBad, side] &> hasSomeTags chapterTags)
---     |> map (\note -> case (firstTagOf chapterTags note) of
---       Just chapter -> chapter.name
---       Nothing ->
---       )
+
+goodBadChaptersOfSide: Tag -> List (String, String)
+goodBadChaptersOfSide side =
+  let
+    noteToChapterWithDescription note =
+      case (relatedNoteOfTag chapter note) of
+        Just chapterNote -> (chapterNote.title, note.title)
+        Nothing -> ("", note.title)
+  in
+    notes
+      |> filter (hasAllTags [goodBad, side] &> hasSomeTags chapterTags)
+      |> map noteToChapterWithDescription
 
 
 
 goodBadChaptersBySide: List (String, List (String, String))
 goodBadChaptersBySide =
-  [("good", [("1", "blabla1"), ("2", "blabla2")])
-  , ("bad", [("3", "blabla3"), ("4", "blabla4")])
-  ]
+  notes
+    |> filter (hasSomeTags [side])
+    |> map (\n -> (n.title, goodBadChaptersOfSide n.tag))
+
 {-goodBadChaptersBySide =
   let
     goodBadChaptersWithSide: Tag -> (Tag, List Note)
