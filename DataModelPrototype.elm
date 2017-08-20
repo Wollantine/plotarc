@@ -13,6 +13,9 @@ main = view sidesOfGoodBad
 (&>): (a -> Bool) -> (a -> Bool) -> a -> Bool
 (&>) funcA funcB a = (&&) (funcA a) (funcB a)
 
+emptyNote: Note
+emptyNote = Note (Tag "") [] ""
+
 -- Returns the intersection of two tag lists
 tagsIntersection: List Tag -> List Tag -> List Tag
 tagsIntersection listA listB =
@@ -87,8 +90,8 @@ tagsTaggedAs targetTag =
 
 type Relationship = Tagged Tag | WithTagOfCategory Tag
 
-relatedNotes: List Relationship -> List Note
-relatedNotes relationships =
+relatedNotes: List Relationship -> List Note -> List Note
+relatedNotes relationships notes =
   let
     filterNotes relationship notes =
       case relationship of
@@ -98,7 +101,23 @@ relatedNotes relationships =
     relationships
       |> List.foldl filterNotes notes
 
+type alias GroupOfNotes =
+  { title: Note
+  , group: List Note
+  }
 
+groupNotesBy: Tag -> List Note -> List GroupOfNotes
+groupNotesBy category notes =
+  let
+    tags = tagsTaggedAs category
+    title tag = case (noteOfTag tag) of
+      Just n -> n
+      Nothing -> emptyNote
+    groupOfNotes tag = notes
+      |> filter (hasTag tag)
+      |> \ns -> GroupOfNotes (title (Just tag)) ns
+  in
+    tags |> map groupOfNotes
 
 
 
@@ -106,10 +125,10 @@ chapterTags = tagsTaggedAs chapter
 sideTags = tagsTaggedAs side
 
 chaptersWithGoodBad: List Note
-chaptersWithGoodBad = relatedNotes [Tagged goodBad, WithTagOfCategory chapter]
+chaptersWithGoodBad = relatedNotes [Tagged goodBad, WithTagOfCategory chapter] notes
 
 sidesOfGoodBad: List Note
-sidesOfGoodBad = relatedNotes [Tagged goodBad, WithTagOfCategory side]
+sidesOfGoodBad = relatedNotes [Tagged goodBad, WithTagOfCategory side] notes
 
 
 goodBadChaptersOfSide: Tag -> List (String, String)
