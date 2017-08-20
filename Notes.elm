@@ -34,7 +34,7 @@ leafTag = Tag "leaf"
 notes: List Note
 notes =
   [ Note one [chapter] "1"
-  , Note two [chapter] "2"
+  , Note two [chapter, goodBad] "2"
   , Note three [chapter] "3"
   , Note four [chapter] "4"
   , Note good [side] "Good"

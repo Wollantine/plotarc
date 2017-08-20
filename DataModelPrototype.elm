@@ -7,14 +7,13 @@ import Notes exposing (..)
 import Html exposing (text)
 
 
-main = groupsView goodBadChaptersBySide
+main = groupsView goodBadSidesByChapter
 
+-- AND of functions
 (&>): (a -> Bool) -> (a -> Bool) -> a -> Bool
 (&>) funcA funcB a = (&&) (funcA a) (funcB a)
 
-tagsInNote: Note -> List Tag
-tagsInNote {tags} = tags
-
+-- Returns the intersection of two tag lists
 tagsIntersection: List Tag -> List Tag -> List Tag
 tagsIntersection listA listB =
   let
@@ -24,6 +23,7 @@ tagsIntersection listA listB =
       |> Set.toList
       |> map Tag
 
+-- True if the tags of the note contain at least all of the targetTags
 hasAllTags: List Tag -> Note -> Bool
 hasAllTags targetTags note =
   let
@@ -31,6 +31,7 @@ hasAllTags targetTags note =
   in
     List.length targetTags == List.length intersection
 
+-- True if the tags of the note contain at least one of the targetTags
 hasSomeTags: List Tag -> Note -> Bool
 hasSomeTags targetTags note =
   let
@@ -38,30 +39,56 @@ hasSomeTags targetTags note =
   in
     not (List.isEmpty intersection)
 
-firstTagOf: List Tag -> Note -> Maybe Tag
-firstTagOf tags note =
-    tagsIntersection tags note.tags |> List.head
+-- True if the tags of the note contain targetTag
+hasTag: Tag -> Note -> Bool
+hasTag targetTag = hasSomeTags [targetTag]
 
-noteOfTag: Maybe Tag -> List Note -> Maybe Note
-noteOfTag tag notes =
+-- Returns Maybe the first common tag of two lists
+firstCommonTag: List Tag -> List Tag -> Maybe Tag
+firstCommonTag setA setB =
+    tagsIntersection setA setB |> List.head
+
+-- Returns Maybe what note the tag belongs to
+noteOfTag: Maybe Tag -> Maybe Note
+noteOfTag tag =
   case tag of
     Just t -> notes
       |> filter (\n -> n.tag.name == t.name)
       |> List.head
     Nothing -> Nothing
 
+{-| Returns, from a note, its first tag of a given category
+E.g. In a note related to chapter two, `relatedNoteOfTag chapter` returns the
+note of chapter two.
+
+Given notes:
+  chapterTwo = Note (Tag "chapterTwo") [Tag "chapter"] ""
+  relatedNote = Note (Tag "any") [chapterTwo, chapterThree] ""
+
+Usage is as follows:
+  relatedNoteOfTag (Tag "chapter") relatedNote == Just chapterTwo
+-}
 relatedNoteOfTag: Tag -> Note -> Maybe Note
-relatedNoteOfTag tag note =
+relatedNoteOfTag category note =
   let
-    notesOfTagType = notes |> filter (hasSomeTags [tag])
-    tagsOfTagType = map .tag notesOfTagType
-    firstTagOfTagTypeInNote = firstTagOf tagsOfTagType note
+    firstCategoryTagInNote = firstCommonTag (tagsTaggedAs category) note.tags
   in
-    notesOfTagType |> noteOfTag firstTagOfTagTypeInNote
+    noteOfTag firstCategoryTagInNote
+
+-- Returns the notes tagged with tag
+notesTaggedAs: Tag -> List Note
+notesTaggedAs targetTag =
+  notes |> filter (hasTag targetTag)
+
+-- Returns the tags of the notes tagged with tag
+tagsTaggedAs: Tag -> List Tag
+tagsTaggedAs targetTag =
+  notesTaggedAs targetTag |> map .tag
 
 
-chapterTags = map .tag (filter (hasSomeTags [chapter]) notes)
-sideTags = map .tag (filter (hasSomeTags [side]) notes)
+
+chapterTags = map .tag (filter (hasTag chapter) notes)
+sideTags = map .tag (filter (hasTag side) notes)
 
 chaptersWithGoodBad: List Note
 chaptersWithGoodBad =
@@ -90,22 +117,28 @@ goodBadChaptersOfSide side =
       |> filter (hasAllTags [goodBad, side] &> hasSomeTags chapterTags)
       |> map noteToChapterWithDescription
 
+goodBadSidesOfChapter: Tag -> List (String, String)
+goodBadSidesOfChapter chapter =
+  let
+    noteToSideWithDescription note =
+      case (relatedNoteOfTag side note) of
+        Just sideNote -> (sideNote.title, note.title)
+        Nothing -> ("", note.title)
+  in
+    notes
+      |> filter (hasAllTags [goodBad, chapter] &> hasSomeTags sideTags)
+      |> map noteToSideWithDescription
 
 
+-- side > chapter (filter goodBad)
 goodBadChaptersBySide: List (String, List (String, String))
 goodBadChaptersBySide =
   notes
-    |> filter (hasSomeTags [side])
+    |> filter (hasTag side)
     |> map (\n -> (n.title, goodBadChaptersOfSide n.tag))
 
-{-goodBadChaptersBySide =
-  let
-    goodBadChaptersWithSide: Tag -> (Tag, List Note)
-    goodBadChaptersWithSide = \side -> (side, filter (hasTags [side, goodBad]) notes)
-    goodBadNotesBySide: List (Tag, List Note)
-    goodBadNotesBySide = map goodBadChaptersWithSide sides
-    noteWithChapter = \note -> (tagsOfCategory "chapter" note, .title note)
-    notesChapters = \notesOfOneSide -> map noteWithChapter notes
-  in
-    map (\(tag, notes) -> (.name tag, notesChapters notes)) goodBadNotesBySide
-    -}
+goodBadSidesByChapter: List (String, List (String, String))
+goodBadSidesByChapter =
+  notes
+    |> filter (hasTag chapter)
+    |> map (\n -> (n.title, goodBadSidesOfChapter n.tag))
