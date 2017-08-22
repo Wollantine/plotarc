@@ -7,8 +7,6 @@ import Notes exposing (..)
 import Html exposing (text)
 
 
-main = view sidesOfGoodBad
-
 -- AND of functions
 (&>): (a -> Bool) -> (a -> Bool) -> a -> Bool
 (&>) funcA funcB a = (&&) (funcA a) (funcB a)
@@ -65,11 +63,15 @@ E.g. In a note related to chapter two, `relatedNoteOfTag chapter` returns the
 note of chapter two.
 
 Given notes:
+```elm
   chapterTwo = Note (Tag "chapterTwo") [Tag "chapter"] ""
   relatedNote = Note (Tag "any") [chapterTwo, chapterThree] ""
+```
 
 Usage is as follows:
+```elm
   relatedNoteOfTag (Tag "chapter") relatedNote == Just chapterTwo
+```
 -}
 relatedNoteOfTag: Tag -> Note -> Maybe Note
 relatedNoteOfTag category note =
@@ -88,8 +90,30 @@ tagsTaggedAs: Tag -> List Tag
 tagsTaggedAs targetTag =
   notesTaggedAs targetTag |> map .tag
 
+{-| Kinds of relationships between notes and tags:
+
+- Tagged tag: Notes that have tag in their tags.
+- WithTagOfCategory category: Notes that have a tag in their tags such that
+tag's note has category in their tags.
+-}
 type Relationship = Tagged Tag | WithTagOfCategory Tag
 
+{-| Returns the notes that fulfill the list of relationships in notes.
+E.g.
+
+Given notes:
+```elm
+  chapterTwo = Note (Tag "chapterTwo") [Tag "chapter"] ""
+  relatedNote1 = Note (Tag "any") [chapterOne] ""
+  relatedNote2 = Note (Tag "any") [chapterTwo] ""
+```
+
+Usage is as follows:
+```elm
+  relatedNotes [Tagged (Tag "chapterTwo")] notes = [relatedNote2]
+  relatedNotes [WithTagOfCategory (Tag "chapter")] notes = [relatedNote1, relatedNote2]
+```
+-}
 relatedNotes: List Relationship -> List Note -> List Note
 relatedNotes relationships notes =
   let
@@ -101,11 +125,27 @@ relatedNotes relationships notes =
     relationships
       |> List.foldl filterNotes notes
 
-type alias GroupOfNotes =
-  { title: Note
-  , group: List Note
-  }
+{-| Groups notes in notes by their first tag tagged as category.
+Returns a list of groups. For each group, its title is the tag's note,
+and the notes are the ones that have that tag.
+E.g. Groups notes by their first tag of category "chapter".
 
+Given notes:
+```elm
+  chapterOne = Note (Tag "chapterOne") [Tag "chapter"] ""
+  chapterTwo = Note (Tag "chapterTwo") [Tag "chapter"] ""
+  relatedNote1 = Note (Tag "any") [chapterOne] ""
+  relatedNote2 = Note (Tag "any") [chapterOne] ""
+```
+
+Usage is as follows:
+```elm
+  groupNotesBy (Tag "chapter") [relatedNote1, relatedNote2] =
+    [ {groupTitle: chapterOne, groupNotes: [relatedNote1, relatedNote2]}
+    , {groupTitle: chapterTwo, groupNotes: []}
+    ]
+```
+-}
 groupNotesBy: Tag -> List Note -> List GroupOfNotes
 groupNotesBy category notes =
   let
@@ -119,6 +159,7 @@ groupNotesBy category notes =
   in
     tags |> map groupOfNotes
 
+main = groupsView goodBadSidesByChapter
 
 
 chapterTags = tagsTaggedAs chapter
@@ -130,41 +171,8 @@ chaptersWithGoodBad = relatedNotes [Tagged goodBad, WithTagOfCategory chapter] n
 sidesOfGoodBad: List Note
 sidesOfGoodBad = relatedNotes [Tagged goodBad, WithTagOfCategory side] notes
 
+goodBadChaptersBySide: List GroupOfNotes
+goodBadChaptersBySide = groupNotesBy side chaptersWithGoodBad
 
-goodBadChaptersOfSide: Tag -> List (String, String)
-goodBadChaptersOfSide side =
-  let
-    noteToChapterWithDescription note =
-      case (relatedNoteOfTag chapter note) of
-        Just chapterNote -> (chapterNote.title, note.title)
-        Nothing -> ("", note.title)
-  in
-    notes
-      |> filter (hasAllTags [goodBad, side] &> hasSomeTags chapterTags)
-      |> map noteToChapterWithDescription
-
-goodBadSidesOfChapter: Tag -> List (String, String)
-goodBadSidesOfChapter chapter =
-  let
-    noteToSideWithDescription note =
-      case (relatedNoteOfTag side note) of
-        Just sideNote -> (sideNote.title, note.title)
-        Nothing -> ("", note.title)
-  in
-    notes
-      |> filter (hasAllTags [goodBad, chapter] &> hasSomeTags sideTags)
-      |> map noteToSideWithDescription
-
-
--- side > chapter (filter goodBad)
-goodBadChaptersBySide: List (String, List (String, String))
-goodBadChaptersBySide =
-  notes
-    |> filter (hasTag side)
-    |> map (\n -> (n.title, goodBadChaptersOfSide n.tag))
-
-goodBadSidesByChapter: List (String, List (String, String))
-goodBadSidesByChapter =
-  notes
-    |> filter (hasTag chapter)
-    |> map (\n -> (n.title, goodBadSidesOfChapter n.tag))
+goodBadSidesByChapter: List GroupOfNotes
+goodBadSidesByChapter = groupNotesBy chapter sidesOfGoodBad
