@@ -9,6 +9,11 @@ type alias Note =
   , title: String
 }
 
+type alias GroupOfNotes =
+  { groupTitle: Note
+  , groupNotes: List Note
+  }
+
 chapter = Tag "chapter"
 scene = Tag "scene"
 storyArc = Tag "storyArc"
