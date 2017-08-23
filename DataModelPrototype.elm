@@ -159,8 +159,16 @@ groupNotesBy category notes =
   in
     tags |> map groupOfNotes
 
-main = groupsView goodBadSidesByChapter
+{-
+- Group notes by multiple tags?
+- Relationships with more than 2 hierarchy levels? (e.g. scenes by book,
+  characters by chapter when characters are organized by scene)
+- Relationships down the hierarchy? (e.g. characters by scene when characters
+  are organized by chapter... can only be assumed all characters in a chapter
+  appear in all chapter's scenes.)
+-}
 
+main = groupsView notesByChapter
 
 chapterTags = tagsTaggedAs chapter
 sideTags = tagsTaggedAs side
@@ -176,3 +184,14 @@ goodBadChaptersBySide = groupNotesBy side chaptersWithGoodBad
 
 goodBadSidesByChapter: List GroupOfNotes
 goodBadSidesByChapter = groupNotesBy chapter sidesOfGoodBad
+
+scenesByChapter = groupNotesBy chapter (relatedNotes [Tagged scene] notes)
+
+chaptersWithBadBadAndRingOfPower = relatedNotes
+  [ Tagged badBad
+  , Tagged ringOfPower
+  , WithTagOfCategory chapter
+  ]
+  notes
+
+notesByChapter = groupNotesBy chapter notes
