@@ -7,12 +7,16 @@ type alias Note =
   { tag: Tag
   , tags: List Tag
   , title: String
-}
+  }
 
 type alias GroupOfNotes =
-  { groupTitle: Note
-  , groupNotes: List Note
+  { groupingNote: Note
+  , group: List Note
   }
+
+type alias MultigroupOfNotes =
+  { groupingNotes: List Note
+  , group: List Note}
 
 chapter = Tag "chapter"
 scene = Tag "scene"
@@ -39,7 +43,10 @@ leafTag = Tag "leaf"
 
 notes: List Note
 notes =
-  [ Note one [chapter] "1"
+  [ Note chapter [] "Chapter"
+  , Note scene [] "Scene"
+  , Note character [] "Character"
+  , Note one [chapter] "1"
   , Note two [chapter, goodBad] "2"
   , Note three [chapter] "3"
   , Note four [chapter] "4"
