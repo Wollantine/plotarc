@@ -118,7 +118,7 @@ isEmptyGroup g = List.isEmpty g.group
 - WithTagOfCategory category: Notes that have a tag in their tags such that
 tag's note has category in their tags.
 -}
-type Relationship = Tagged Tag | WithTagOfCategory Tag
+type Relationship = Tagged Tag | WithTagOfCategory Tag | WithTagOfSuperCategory Tag
 
 {-| Returns the notes that fulfill the list of relationships in notes.
 E.g.
@@ -143,6 +143,11 @@ relatedNotes relationships notes =
       case relationship of
         Tagged tag -> notes |> filter (hasTag tag)
         WithTagOfCategory tag -> notes |> filter (hasSomeTags (tagsTaggedAs tag))
+        WithTagOfSuperCategory tag -> notes
+          |> filter (hasSomeTags (notes
+            |> filter (hasSomeTags (tagsTaggedAs tag))
+            |> map .tag
+            ))
   in
     relationships
       |> List.foldl filterNotes notes
@@ -220,7 +225,6 @@ cartesianWithValues selectedValues lists =
         |> concat
 
 {-
-- Group notes by multiple tags?
 - Relationships with more than 2 hierarchy levels? (e.g. scenes by book,
   characters by chapter when characters are organized by scene)
 - Relationships down the hierarchy? (e.g. characters by scene when characters
