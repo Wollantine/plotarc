@@ -7,14 +7,22 @@ import Notes exposing (..)
 import Html exposing (text)
 
 
--- AND of functions
+{-| AND of functions
+-}
 (&>): (a -> Bool) -> (a -> Bool) -> a -> Bool
 (&>) funcA funcB a = (&&) (funcA a) (funcB a)
 
 emptyNote: Note
 emptyNote = Note (Tag "") [] ""
 
--- Returns the intersection of two tag lists
+isEmptyNote: Note -> Bool
+isEmptyNote note =
+  String.isEmpty note.tag.name &&
+  List.isEmpty note.tags &&
+  String.isEmpty note.title
+
+{-| Returns the intersection of two tag lists
+-}
 tagsIntersection: List Tag -> List Tag -> List Tag
 tagsIntersection listA listB =
   let
@@ -24,7 +32,8 @@ tagsIntersection listA listB =
       |> Set.toList
       |> map Tag
 
--- True if the tags of the note contain at least all of the targetTags
+{-| True if the tags of the note contain at least all of the targetTags
+-}
 hasAllTags: List Tag -> Note -> Bool
 hasAllTags targetTags note =
   let
@@ -32,7 +41,8 @@ hasAllTags targetTags note =
   in
     List.length targetTags == List.length intersection
 
--- True if the tags of the note contain at least one of the targetTags
+{-| True if the tags of the note contain at least one of the targetTags
+-}
 hasSomeTags: List Tag -> Note -> Bool
 hasSomeTags targetTags note =
   let
@@ -40,23 +50,28 @@ hasSomeTags targetTags note =
   in
     not (List.isEmpty intersection)
 
--- True if the tags of the note contain targetTag
+{-| True if the tags of the note contain targetTag
+-}
 hasTag: Tag -> Note -> Bool
 hasTag targetTag = hasSomeTags [targetTag]
 
--- Returns Maybe the first common tag of two lists
+{-| Returns Maybe the first common tag of two lists
+-}
 firstCommonTag: List Tag -> List Tag -> Maybe Tag
 firstCommonTag setA setB =
     tagsIntersection setA setB |> List.head
 
--- Returns Maybe what note the tag belongs to
-noteOfTag: Maybe Tag -> Maybe Note
-noteOfTag tag =
+{-| Returns Maybe what note the tag belongs to
+-}
+noteOfMaybeTag: Maybe Tag -> Maybe Note
+noteOfMaybeTag tag =
   case tag of
     Just t -> notes
       |> filter (\n -> n.tag.name == t.name)
       |> List.head
     Nothing -> Nothing
+
+noteOfTag tag = noteOfMaybeTag (Just tag)
 
 {-| Returns, from a note, its first tag of a given category.
 E.g. In a note related to chapter two, `relatedNoteOfTag chapter` returns the
@@ -78,17 +93,24 @@ relatedNoteOfTag category note =
   let
     firstCategoryTagInNote = firstCommonTag (tagsTaggedAs category) note.tags
   in
-    noteOfTag firstCategoryTagInNote
+    noteOfMaybeTag firstCategoryTagInNote
 
--- Returns the notes tagged with tag
+{-| Returns the notes tagged with tag
+-}
 notesTaggedAs: Tag -> List Note
 notesTaggedAs targetTag =
   notes |> filter (hasTag targetTag)
 
--- Returns the tags of the notes tagged with tag
+{-| Returns the tags of the notes tagged with tag
+-}
 tagsTaggedAs: Tag -> List Tag
 tagsTaggedAs targetTag =
   notesTaggedAs targetTag |> map .tag
+
+{-| Returns True only if group has no belonging notes
+-}
+isEmptyGroup: {a | group: List Note} -> Bool
+isEmptyGroup g = List.isEmpty g.group
 
 {-| Kinds of relationships between notes and tags:
 
@@ -150,14 +172,40 @@ groupNotesBy: Tag -> List Note -> List GroupOfNotes
 groupNotesBy category notes =
   let
     tags = tagsTaggedAs category
-    title tag = case (noteOfTag tag) of
-      Just n -> n
-      Nothing -> emptyNote
+    groupingNote tag = maybeNoteToNoteOrEmptyNote (noteOfTag tag)
     groupOfNotes tag = notes
       |> filter (hasTag tag)
-      |> \ns -> GroupOfNotes (title (Just tag)) ns
+      |> \ns -> GroupOfNotes (groupingNote tag) ns
   in
     tags |> map groupOfNotes
+
+groupNotesByMultipleTags: List Tag -> List Note -> List MultigroupOfNotes
+groupNotesByMultipleTags categories notes =
+  let
+    groupingNotes tags = tagsAsGroupingNotes tags
+    multigroupOfNotes tags = notes
+      |> filter (hasAllTags tags)
+      |> \ns -> MultigroupOfNotes (groupingNotes tags) ns
+  in
+    categories
+      |> map tagsTaggedAs
+      |> cartesianProduct
+      |> map multigroupOfNotes
+      |> filter (not << isEmptyGroup)
+
+maybeNoteToNoteOrEmptyNote: Maybe Note -> Note
+maybeNoteToNoteOrEmptyNote maybeNote =
+  case maybeNote of
+    Just n -> n
+    Nothing -> emptyNote
+
+tagsAsGroupingNotes: List Tag -> List Note
+tagsAsGroupingNotes tags =
+  tags
+    |> map noteOfTag
+    |> map maybeNoteToNoteOrEmptyNote
+    |> filter (not << isEmptyNote)
+
 
 cartesianProduct: List (List a) -> List (List a)
 cartesianProduct lists = cartesianWithValues [] lists
@@ -168,7 +216,7 @@ cartesianWithValues selectedValues lists =
     [] -> [selectedValues]
     firstList :: restOfLists ->
       firstList
-        |> map (\e -> combinationsOf (e :: selectedValues) restOfLists)
+        |> map (\e -> cartesianWithValues (e :: selectedValues) restOfLists)
         |> concat
 
 {-
@@ -180,7 +228,7 @@ cartesianWithValues selectedValues lists =
   appear in all chapter's scenes.)
 -}
 
-main = groupsView notesByChapter
+main = multigroupsView (groupNotesByMultipleTags [chapter, character] notes)
 
 chapterTags = tagsTaggedAs chapter
 sideTags = tagsTaggedAs side
