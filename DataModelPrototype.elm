@@ -159,6 +159,18 @@ groupNotesBy category notes =
   in
     tags |> map groupOfNotes
 
+cartesianProduct: List (List a) -> List (List a)
+cartesianProduct lists = cartesianWithValues [] lists
+
+cartesianWithValues: List a -> List (List a) -> List (List a)
+cartesianWithValues selectedValues lists =
+  case lists of
+    [] -> [selectedValues]
+    firstList :: restOfLists ->
+      firstList
+        |> map (\e -> combinationsOf (e :: selectedValues) restOfLists)
+        |> concat
+
 {-
 - Group notes by multiple tags?
 - Relationships with more than 2 hierarchy levels? (e.g. scenes by book,
