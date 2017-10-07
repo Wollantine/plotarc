@@ -16,7 +16,8 @@ type alias GroupOfNotes =
 
 type alias MultigroupOfNotes =
   { groupingNotes: List Note
-  , group: List Note}
+  , group: List Note
+  }
 
 chapter = Tag "chapter"
 scene = Tag "scene"

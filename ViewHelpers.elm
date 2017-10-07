@@ -5,15 +5,6 @@ import Html.Attributes exposing (style)
 import Notes exposing (Note, Tag, GroupOfNotes, MultigroupOfNotes)
 import List exposing (map, foldl)
 
-view: List Note -> Html Never
-view notes =
-  div [] (List.map noteView notes)
-
-noteView: Note -> Html Never
-noteView note =
-  div [] [
-    text note.title
-  ]
 
 tagList: List Tag -> String
 tagList tags =
