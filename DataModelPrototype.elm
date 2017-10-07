@@ -5,21 +5,13 @@ import Set exposing (Set)
 import ViewHelpers exposing (..)
 import Notes exposing (..)
 import Html exposing (text)
+import Maybe.Extra exposing (isNothing, values)
 
 
 {-| AND of functions
 -}
 (&>): (a -> Bool) -> (a -> Bool) -> a -> Bool
 (&>) funcA funcB a = (&&) (funcA a) (funcB a)
-
-emptyNote: Note
-emptyNote = Note (Tag "") [] ""
-
-isEmptyNote: Note -> Bool
-isEmptyNote note =
-  String.isEmpty note.tag.name &&
-  List.isEmpty note.tags &&
-  String.isEmpty note.title
 
 {-| Returns the intersection of two tag lists
 -}
@@ -71,6 +63,7 @@ noteOfMaybeTag tag =
       |> List.head
     Nothing -> Nothing
 
+noteOfTag: Tag -> Maybe Note
 noteOfTag tag = noteOfMaybeTag (Just tag)
 
 {-| Returns, from a note, its first tag of a given category.
@@ -132,8 +125,8 @@ Given notes:
 
 Usage is as follows:
 ```elm
-  relatedNotes [Tagged (Tag "chapterTwo")] notes = [relatedNote2]
-  relatedNotes [WithTagOfCategory (Tag "chapter")] notes = [relatedNote1, relatedNote2]
+  relatedNotes [Tagged (Tag "chapterTwo")] notes == [relatedNote2]
+  relatedNotes [WithTagOfCategory (Tag "chapter")] notes == [relatedNote1, relatedNote2]
 ```
 -}
 relatedNotes: List Relationship -> List Note -> List Note
@@ -167,7 +160,7 @@ Given notes:
 
 Usage is as follows:
 ```elm
-  groupNotesBy (Tag "chapter") [relatedNote1, relatedNote2] =
+  groupNotesBy (Tag "chapter") [relatedNote1, relatedNote2] ==
     [ {groupTitle: chapterOne, groupNotes: [relatedNote1, relatedNote2]}
     , {groupTitle: chapterTwo, groupNotes: []}
     ]
@@ -177,12 +170,14 @@ groupNotesBy: Tag -> List Note -> List GroupOfNotes
 groupNotesBy category notes =
   let
     tags = tagsTaggedAs category
-    groupingNote tag = maybeNoteToNoteOrEmptyNote (noteOfTag tag)
     groupOfNotes tag = notes
       |> filter (hasTag tag)
-      |> \ns -> GroupOfNotes (groupingNote tag) ns
+      |> \ns -> case (noteOfTag tag) of
+        Just note -> Just (GroupOfNotes note ns)
+        Nothing -> Nothing
   in
-    tags |> map groupOfNotes
+    tags |> map groupOfNotes |> values
+
 
 groupNotesByMultipleTags: List Tag -> List Note -> List MultigroupOfNotes
 groupNotesByMultipleTags categories notes =
@@ -198,18 +193,11 @@ groupNotesByMultipleTags categories notes =
       |> map multigroupOfNotes
       |> filter (not << isEmptyGroup)
 
-maybeNoteToNoteOrEmptyNote: Maybe Note -> Note
-maybeNoteToNoteOrEmptyNote maybeNote =
-  case maybeNote of
-    Just n -> n
-    Nothing -> emptyNote
-
 tagsAsGroupingNotes: List Tag -> List Note
 tagsAsGroupingNotes tags =
   tags
     |> map noteOfTag
-    |> map maybeNoteToNoteOrEmptyNote
-    |> filter (not << isEmptyNote)
+    |> values
 
 
 cartesianProduct: List (List a) -> List (List a)
