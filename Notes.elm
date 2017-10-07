@@ -64,3 +64,14 @@ notes =
   , Note leafTag [badBad, ringOfPower, one, scene] "BadBad steals the Ring of Power"
   , Note leafTag [badBad, ringOfPower, four, scene] "BadBad breaks the Ring of Power and becomes a god"
   ]
+
+
+-- MODEL
+
+type alias Model =
+  { notes: List Note
+  , newNoteTitle: String
+  }
+
+model: Model
+model = Model [Note (Tag "Chapter") [] "Chapter"] ""
