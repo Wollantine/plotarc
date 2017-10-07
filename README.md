@@ -8,7 +8,8 @@ Plotarc (WIP) is a note manager right now in development.
 Just like other note managers, it allows to save and edit small pieces of text
 with a title and organize them.
 
-Unlike other note managers, it allows to tag them with other notes, creating a multi-dimensional database you can later query however you please.
+Unlike other note managers, it allows to tag a note with other notes, creating
+a multi-dimensional database you can later query however you please.
 
 ## Motivation
 Plotarc's idea was born from the need to organize the information related to
