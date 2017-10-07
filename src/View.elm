@@ -1,9 +1,9 @@
-module ViewHelpers exposing (..)
+module View exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Notes exposing (Note, Tag, GroupOfNotes, MultigroupOfNotes, Model)
+import Model exposing (Note, Tag, GroupOfNotes, MultigroupOfNotes, Model)
 import Update exposing (Msg(..))
 import List exposing (map, foldl)
 

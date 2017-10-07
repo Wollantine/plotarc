@@ -1,7 +1,7 @@
 import Html exposing (..)
-import ViewHelpers exposing (view)
+import View exposing (view)
 import Update exposing (update)
-import Notes exposing (model)
+import Model exposing (model)
 
 main = Html.beginnerProgram
   { model = model

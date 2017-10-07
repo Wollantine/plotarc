@@ -1,4 +1,4 @@
-module Notes exposing (..)
+module Model exposing (..)
 
 
 type alias Tag = {name: String}

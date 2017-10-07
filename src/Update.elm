@@ -1,6 +1,6 @@
 module Update exposing (update, Msg(..))
 
-import Notes exposing (Note, Tag, Model, model)
+import Model exposing (Note, Tag, Model, model)
 
 type Msg = AddNote | ChangeNewNoteTitle String
 
