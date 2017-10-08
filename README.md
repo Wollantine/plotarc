@@ -23,6 +23,26 @@ meet each other
 - Timeline of events ordered by date, or by scene
 - ...
 
+## Project scope
+Currently developing the Plotarc MVP.
+
+The Minimum Viable Product should allow the following functionalities:
+
+- A tree structure view of the notes grouped arbitrarily.
+- Ability to create notes and edit their contents and relationships.
+- Filtering the notes by multiple arbitrary filters.
+- A nice look and feel, though template based.
+- Local data storage.
+
+It will NOT have any of the following desired future work capabilities:
+
+- Ability to change notes relationships through drag and drop.
+- More complex queries.
+- More views (timeline, cardboard, graph...).
+- Users and cloud data storage.
+- Self designed look and feel.
+
 ## Status
-You can check the project progress in
+
+You can check this project progress in
 [this board](https://trello.com/b/9TugrPZi/plotarc-mvp).
