@@ -2,8 +2,8 @@ module DataModelPrototype exposing (..)
 
 import List exposing (..)
 import Set exposing (Set)
-import ViewHelpers exposing (..)
-import Notes exposing (..)
+import View exposing (..)
+import Model exposing (..)
 import Html exposing (text)
 import Maybe.Extra exposing (isNothing, values)
 
@@ -55,16 +55,16 @@ firstCommonTag setA setB =
 
 {-| Returns Maybe what note the tag belongs to
 -}
-noteOfMaybeTag: Maybe Tag -> Maybe Note
-noteOfMaybeTag tag =
+noteOfMaybeTag: List Note -> Maybe Tag -> Maybe Note
+noteOfMaybeTag notes tag =
   case tag of
     Just t -> notes
       |> filter (\n -> n.tag.name == t.name)
       |> List.head
     Nothing -> Nothing
 
-noteOfTag: Tag -> Maybe Note
-noteOfTag tag = noteOfMaybeTag (Just tag)
+noteOfTag: List Note -> Tag -> Maybe Note
+noteOfTag notes tag = noteOfMaybeTag notes (Just tag)
 
 {-| Returns, from a note, its first tag of a given category.
 E.g. In a note related to chapter two, `relatedNoteOfTag chapter` returns the
@@ -81,24 +81,24 @@ Usage is as follows:
   relatedNoteOfTag (Tag "chapter") relatedNote == Just chapterTwo
 ```
 -}
-relatedNoteOfTag: Tag -> Note -> Maybe Note
-relatedNoteOfTag category note =
+relatedNoteOfTag: List Note -> Tag -> Note -> Maybe Note
+relatedNoteOfTag notes category note =
   let
-    firstCategoryTagInNote = firstCommonTag (tagsTaggedAs category) note.tags
+    firstCategoryTagInNote = firstCommonTag (tagsTaggedAs notes category) note.tags
   in
-    noteOfMaybeTag firstCategoryTagInNote
+    noteOfMaybeTag notes firstCategoryTagInNote
 
 {-| Returns the notes tagged with tag
 -}
-notesTaggedAs: Tag -> List Note
-notesTaggedAs targetTag =
+notesTaggedAs: List Note -> Tag -> List Note
+notesTaggedAs notes targetTag =
   notes |> filter (hasTag targetTag)
 
 {-| Returns the tags of the notes tagged with tag
 -}
-tagsTaggedAs: Tag -> List Tag
-tagsTaggedAs targetTag =
-  notesTaggedAs targetTag |> map .tag
+tagsTaggedAs: List Note -> Tag -> List Tag
+tagsTaggedAs notes targetTag =
+  notesTaggedAs notes targetTag |> map .tag
 
 {-| Returns True only if group has no belonging notes
 -}
@@ -132,15 +132,16 @@ Usage is as follows:
 relatedNotes: List Relationship -> List Note -> List Note
 relatedNotes relationships notes =
   let
+    tagsTaggedInNotesAs = tagsTaggedAs notes
     filterNotes relationship notes =
       case relationship of
         Tagged tag -> notes |> filter (hasTag tag)
-        WithTagOfCategory tag -> notes |> filter (hasSomeTags (tagsTaggedAs tag))
+        WithTagOfCategory tag -> notes |> filter (hasSomeTags (tagsTaggedInNotesAs tag))
         WithTagOfSuperCategory tag -> notes
           |> filter (hasSomeTags (notes
-            |> filter (hasSomeTags (tagsTaggedAs tag))
+            |> filter (hasSomeTags (tagsTaggedInNotesAs tag))
             |> map .tag
-            ))
+          ))
   in
     relationships
       |> List.foldl filterNotes notes
@@ -169,34 +170,37 @@ Usage is as follows:
 groupNotesBy: Tag -> List Note -> List GroupOfNotes
 groupNotesBy category notes =
   let
-    tags = tagsTaggedAs category
+    tags = tagsTaggedAs notes category
+    groupOfNotes: Tag -> Maybe GroupOfNotes
     groupOfNotes tag = notes
       |> filter (hasTag tag)
-      |> \ns -> case (noteOfTag tag) of
+      |> \ns -> case (noteOfTag notes tag) of
         Just note -> Just (GroupOfNotes note ns)
         Nothing -> Nothing
   in
-    tags |> map groupOfNotes |> values
+    tags
+      |> map groupOfNotes
+      |> values
 
 
 groupNotesByMultipleTags: List Tag -> List Note -> List MultigroupOfNotes
 groupNotesByMultipleTags categories notes =
   let
-    groupingNotes tags = tagsAsGroupingNotes tags
+    groupingNotes tags = tagsAsGroupingNotes notes tags
     multigroupOfNotes tags = notes
       |> filter (hasAllTags tags)
       |> \ns -> MultigroupOfNotes (groupingNotes tags) ns
   in
     categories
-      |> map tagsTaggedAs
+      |> map (tagsTaggedAs notes)
       |> cartesianProduct
       |> map multigroupOfNotes
       |> filter (not << isEmptyGroup)
 
-tagsAsGroupingNotes: List Tag -> List Note
-tagsAsGroupingNotes tags =
+tagsAsGroupingNotes: List Note -> List Tag -> List Note
+tagsAsGroupingNotes notes tags =
   tags
-    |> map noteOfTag
+    |> map (noteOfTag notes)
     |> values
 
 
@@ -222,8 +226,10 @@ cartesianWithValues selectedValues lists =
 
 main = multigroupsView (groupNotesByMultipleTags [chapter, character] notes)
 
-chapterTags = tagsTaggedAs chapter
-sideTags = tagsTaggedAs side
+-- QUERY TESTS
+
+chapterTags = tagsTaggedAs notes chapter
+sideTags = tagsTaggedAs notes side
 
 chaptersWithGoodBad: List Note
 chaptersWithGoodBad = relatedNotes [Tagged goodBad, WithTagOfCategory chapter] notes

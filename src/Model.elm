@@ -74,4 +74,4 @@ type alias Model =
   }
 
 model: Model
-model = Model [Note (Tag "Chapter") [] "Chapter"] ""
+model = Model notes ""
