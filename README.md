@@ -22,3 +22,7 @@ things like:
 meet each other
 - Timeline of events ordered by date, or by scene
 - ...
+
+## Status
+You can check the project progress in
+[this board](https://trello.com/b/9TugrPZi/plotarc-mvp).
