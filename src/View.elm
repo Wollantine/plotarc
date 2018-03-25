@@ -28,7 +28,7 @@ addNoteInput: String -> Html Msg
 addNoteInput newNoteTitle =
   div []
     [ input [onInput ChangeNewNoteTitle, value newNoteTitle] []
-    , button [onClick AddNote] [text "+"]
+    , button [onClick (AddNote newNoteTitle)] [text "+"]
     ]
 
 

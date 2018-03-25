@@ -9,6 +9,10 @@ type alias Note =
   , title: String
   }
 
+note: String -> List String -> String -> Note
+note tag tags title =
+  Note (Tag tag) (List.map (\t -> Tag t) tags) title
+
 type alias GroupOfNotes =
   { groupingNote: Note
   , group: List Note

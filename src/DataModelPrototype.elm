@@ -113,7 +113,7 @@ tag's note has category in their tags.
 -}
 type Relationship = Tagged Tag | WithTagOfCategory Tag | WithTagOfSuperCategory Tag
 
-{-| Returns the notes that fulfill the list of relationships in notes.
+{-| Returns the notes that fulfill the list of relationships in `notes`.
 E.g.
 
 Given notes:
@@ -146,7 +146,7 @@ relatedNotes relationships notes =
     relationships
       |> List.foldl filterNotes notes
 
-{-| Groups notes in notes by their first tag tagged as category.
+{-| Groups notes in `notes` by their first tag tagged as category.
 Returns a list of groups. For each group, its title is the tag's note,
 and the notes are the ones that have that tag.
 E.g. Groups notes by their first tag of category "chapter".
@@ -222,13 +222,19 @@ cartesianWithValues selectedValues lists =
 - Relationships down the hierarchy? (e.g. characters by scene when characters
   are organized by chapter... can only be assumed all characters in a chapter
   appear in all chapter's scenes.)
+
+-> Aggregate relationships inherit parent's tags. E.g. scenes of chapter 1 are also
+  tagged as book A. Characters in a scene are also tagged as in its chapter.
 -}
 
+main: Html.Html Never
 main = multigroupsView (groupNotesByMultipleTags [chapter, character] notes)
 
 -- QUERY TESTS
 
+chapterTags: List Tag
 chapterTags = tagsTaggedAs notes chapter
+sideTags: List Tag
 sideTags = tagsTaggedAs notes side
 
 chaptersWithGoodBad: List Note
@@ -243,8 +249,10 @@ goodBadChaptersBySide = groupNotesBy side chaptersWithGoodBad
 goodBadSidesByChapter: List GroupOfNotes
 goodBadSidesByChapter = groupNotesBy chapter sidesOfGoodBad
 
+scenesByChapter: List GroupOfNotes
 scenesByChapter = groupNotesBy chapter (relatedNotes [Tagged scene] notes)
 
+chaptersWithBadBadAndRingOfPower: List Note
 chaptersWithBadBadAndRingOfPower = relatedNotes
   [ Tagged badBad
   , Tagged ringOfPower
@@ -252,4 +260,5 @@ chaptersWithBadBadAndRingOfPower = relatedNotes
   ]
   notes
 
+notesByChapter: List GroupOfNotes
 notesByChapter = groupNotesBy chapter notes
